@@ -30,6 +30,15 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <div class="mb-3">
+            <label for="gender" class="form-label">Gender</label>
+            <select name="gender" id="gender" class="form-control">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+</select>
+</div>
+
         <div class="flex items-center justify-end mt-4">
             <x-primary-button>
                 {{ __('Reset Password') }}
