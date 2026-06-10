@@ -4,39 +4,75 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReactionController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\PublicProfileController;
+use App\Http\Controllers\NotificationController;
 use App\Models\Post;
 Route::get('/', function () {
-    $posts = Post::latest()->get();
+    $posts = Post::where('status', 'approved')->latest()->get();
 
-     return view('welcome', 'home', compact('posts'));
+     return view('welcome', compact('posts'));
 });
 
 Route::get('/dashboard', function () {
-    $posts =Post::all();
+    $posts = Post::with(['comments.user', 'likedByUsers', 'favoritedByUsers', 'user'])
+        ->where(function ($query) {
+            $query->where('status', 'approved')
+                ->orWhere('user_id', auth()->id());
+        })
+        ->orderByDesc('is_featured')
+        ->latest()
+        ->get();
 
-    return view('dashboard', compact('posts'));
+    $categories = ['General', 'News', 'Tutorials', 'Personal', 'Announcements'];
+    $notifications = auth()->user()->notifications()->latest()->take(5)->get();
+
+    return view('dashboard', compact('posts', 'categories', 'notifications'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::resource('posts', PostController::class)->except(['index', 'show']);
+
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::patch('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    Route::post('/posts/{post}/like', [ReactionController::class, 'toggleLike'])->name('posts.like');
+    Route::post('/posts/{post}/favorite', [ReactionController::class, 'toggleFavorite'])->name('posts.favorite');
+    Route::post('/posts/{post}/report', [ReportController::class, 'storePost'])->name('posts.report');
+    Route::post('/comments/{comment}/report', [ReportController::class, 'storeComment'])->name('comments.report');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
 });
-Route::get('/posts', [PostController::class, 'index']);
-Route::get('/posts/create', [PostController::class, 'create']);
-Route::post('/posts', [PostController::class, 'store']);
-Route::get('/posts/{id}/edit', [PostController::class, 'edit']);
-Route::post('/posts/{id}/update', [PostController::class, 'update']);
-Route::get('/posts/{id}/delete', [PostController::class, 'destroy']);
+
 Route::get('/test-view', function () {
     return view('posts.create');
 });
-route::get('admin', function(){
-    if(auth()->role !== 'admin'){
-        abort(403);
-    }
 
-    return view('admin');
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('index');
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
+    Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
+    Route::delete('/posts/{post}', [AdminController::class, 'destroyPost'])->name('posts.destroy');
+});
+
+Route::middleware(['auth', 'manager'])->prefix('manager')->name('manager.')->group(function () {
+    Route::get('/', [ManagerController::class, 'index'])->name('index');
+    Route::patch('/posts/{post}/approve', [ManagerController::class, 'approve'])->name('posts.approve');
+    Route::patch('/posts/{post}/reject', [ManagerController::class, 'reject'])->name('posts.reject');
+    Route::patch('/posts/{post}/featured', [ManagerController::class, 'toggleFeatured'])->name('posts.featured');
+    Route::patch('/posts/{post}', [ManagerController::class, 'updatePost'])->name('posts.update');
+    Route::delete('/posts/{post}', [ManagerController::class, 'destroyPost'])->name('posts.destroy');
+    Route::delete('/comments/{comment}', [ManagerController::class, 'destroyComment'])->name('comments.destroy');
+    Route::patch('/reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
 });
 // route::get('/dashboard', function () {
 //     return view('dashboard');
@@ -44,9 +80,6 @@ route::get('admin', function(){
 // route::get('/profile', function (){
 //             return view('profile'):
 // })->middleware('auth');
-route::get('/admin', function(){
-    return "Admin panel";
-})->middleware(['auth']);
 require __DIR__.'/auth.php';
 
 route::get ('/upload', function() {
@@ -54,25 +87,4 @@ route::get ('/upload', function() {
 });
 route::post('/upload',[UploadController::class, 'store']);
 route::get('/search', [UserController::class, 'search']);
-// route::get('/profile', function (){
-//     return view('profiles');
-// })->middleware('auth')->name('profile');
-route::resource('posts',PostController::class);
-
-route::get('/posts', function(){
-    $posts =[
-        ['id' => 1, 'title' => 'My first post'],
-        ['id' => 2, 'title' => 'Learning Laravel'],
-        ['id' => 3, 'title' => 'Building my project'],
-
-    ];
-    return view('posts.index', compact('posts'));
-});
-
-
-
-Route::get('/posts', function () {
-    $posts = Post::latest()->get();
-
-    return view('posts.index', compact('posts'));
-});
+Route::get('/users/{user}', [PublicProfileController::class, 'show'])->name('users.show');

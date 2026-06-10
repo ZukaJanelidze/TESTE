@@ -9,7 +9,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -32,16 +31,17 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:50'],
-            'email' => ['required', 'string','lowercase', 'email:rfc,dns', 'max:100', 'unique:users,email'],
-            'password' => ['required','string','min:8', 'confirmed', Rules\Password::defaults()],
-            'gender'=> 'required|in:male,female',
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:100', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'max:64', 'confirmed'],
+            'gender' => ['required', 'in:Male,Female'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'gender'=> $request->gender,
+            'gender' => $request->gender,
+            'role' => 'user',
         ]);
 
         event(new Registered($user));

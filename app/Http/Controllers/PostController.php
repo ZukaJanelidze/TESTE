@@ -13,44 +13,73 @@ class PostController extends Controller
 
     public function index()
     {
-        $posts = Post::all();
+        $posts = Post::with(['comments.user'])
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+
         return view('dashboard', compact('posts'));
     }
 
     
     public function create()
     {
-        return view('posts.create');
+        return view('posts.create', [
+            'categories' => ['General', 'News', 'Tutorials', 'Personal', 'Announcements'],
+        ]);
     }
 
     
     public function store(Request $request)
     {
-        Post::create([
-            'title' => $request->title,
-            'body'  => $request->body,
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'category' => ['required', 'string', 'max:50'],
         ]);
 
-        return redirect('/posts');
+        Post::create([
+            'user_id' => $request->user()->id,
+            'title' => $validated['title'],
+            'body' => $validated['body'],
+            'category' => $validated['category'],
+            'status' => $request->user()->canModerate() ? 'approved' : 'pending',
+        ]);
+
+        return redirect()->route('dashboard')->with('status', 'Post submitted.');
     }
 
     
     public function update(Request $request, $id)
     {
         $post = Post::findOrFail($id);
-        $post->update([
-            'title' => $request->title,
-            'body'  => $request->body,
+
+        abort_unless($request->user()->canModerate() || $post->user_id === $request->user()->id, 403);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'category' => ['required', 'string', 'max:50'],
         ]);
 
-        return redirect('/posts');
+        $post->update($validated + [
+            'status' => $request->user()->canModerate() ? $post->status : 'pending',
+            'rejection_reason' => null,
+        ]);
+
+        return redirect()->route('dashboard')->with('status', 'Post updated.');
     }
 
     
     public function destroy($id)
     {
-        Post::findOrFail($id)->delete();
-        return redirect('/posts');
+        $post = Post::findOrFail($id);
+
+        abort_unless(auth()->user()->canModerate() || $post->user_id === auth()->id(), 403);
+
+        $post->delete();
+
+        return redirect()->route('dashboard')->with('status', 'Post deleted.');
     }
     
     public function show (Post $post)
@@ -60,12 +89,14 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
+        abort_unless(auth()->user()->canModerate() || $post->user_id === auth()->id(), 403);
+
         return view('posts.edit', compact('post'));
     }
 
     public function dashboard()
     {
-          $posts = Post::all();
+          $posts = Post::with(['comments.user'])->where('status', 'approved')->latest()->get();
 
           return view ('dashboard', compact('posts'));
     }
