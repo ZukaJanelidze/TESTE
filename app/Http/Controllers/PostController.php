@@ -8,10 +8,13 @@ use Illuminate\Http\Request;
 class PostController extends Controller
 {
     
+
+    
+
     public function index()
     {
-        $posts = Post::latest()->get();
-        return view('posts.index', compact('posts'));
+        $posts = Post::all();
+        return view('dashboard', compact('posts'));
     }
 
     
@@ -58,6 +61,13 @@ class PostController extends Controller
     public function edit(Post $post)
     {
         return view('posts.edit', compact('post'));
+    }
+
+    public function dashboard()
+    {
+          $posts = Post::all();
+
+          return view ('dashboard', compact('posts'));
     }
 }
 

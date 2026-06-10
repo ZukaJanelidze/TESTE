@@ -39,11 +39,31 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <!-- <div class="flex items-center justify-end mt-4">
+            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
+                {{ __('Already registered?') }}
+            </a> -->
+        <div class="form-group">
+            <label for="gender" style="color: white;" >Gender:</label>
+             <select id="gender" name="gender" required>
+               <option value="">Select Gender</option>
+               <option value="Male">Male</option>
+               <option value="Female">Female</option>
+            </select>
+        </div>
+    <div class="form-group">
+        <label for="role" style="color: white;">Role:</label>
+        <select id="role" name="role" required>
+        <option value="">Select Role</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+        <option value="manager">Manager</option>
+        </select>
+    </div>
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
                 {{ __('Already registered?') }}
             </a>
-
             <x-primary-button class="ms-4">
                 {{ __('Register') }}
             </x-primary-button>

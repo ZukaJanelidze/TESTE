@@ -4,12 +4,17 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\PostController;
+use App\Models\Post;
 Route::get('/', function () {
-    return view('welcome');
+    $posts = Post::latest()->get();
+
+     return view('welcome', 'home', compact('posts'));
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $posts =Post::all();
+
+    return view('dashboard', compact('posts'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -23,7 +28,9 @@ Route::post('/posts', [PostController::class, 'store']);
 Route::get('/posts/{id}/edit', [PostController::class, 'edit']);
 Route::post('/posts/{id}/update', [PostController::class, 'update']);
 Route::get('/posts/{id}/delete', [PostController::class, 'destroy']);
-
+Route::get('/test-view', function () {
+    return view('posts.create');
+});
 route::get('admin', function(){
     if(auth()->role !== 'admin'){
         abort(403);
@@ -51,3 +58,21 @@ route::get('/search', [UserController::class, 'search']);
 //     return view('profiles');
 // })->middleware('auth')->name('profile');
 route::resource('posts',PostController::class);
+
+route::get('/posts', function(){
+    $posts =[
+        ['id' => 1, 'title' => 'My first post'],
+        ['id' => 2, 'title' => 'Learning Laravel'],
+        ['id' => 3, 'title' => 'Building my project'],
+
+    ];
+    return view('posts.index', compact('posts'));
+});
+
+
+
+Route::get('/posts', function () {
+    $posts = Post::latest()->get();
+
+    return view('posts.index', compact('posts'));
+});
