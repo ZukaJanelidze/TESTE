@@ -2,9 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Comment;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +19,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::factory(50)->create();
+        Post::factory(60)->create([
+            'user_id' => User::inRandomOrder()->first()->id,
         ]);
+        Comment::factory()
+        ->count(200)
+        ->make()
+        ->each(function ($comment) {
+            $comment->user_id = User::inRandomOrder()->first()->id;
+            $comment->post_id = Post::inRandomOrder()->first()->id;
+            $comment->save();
+        });
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+ $this->call(PostLikeSeeder::class);
+        User::firstOrCreate(
+            ['email' => 'User@example.com'],
+            [
+                'name' => 'User',
+                'password' => Hash::make('password'),
+                'role' => 'user',
+            ]
+        );
     }
 }
+

@@ -27,12 +27,13 @@ Route::get('/dashboard', function () {
         })
         ->orderByDesc('is_featured')
         ->latest()
-        ->get();
+        ->paginate(10);
 
-    $categories = ['General', 'News', 'Tutorials', 'Personal', 'Announcements'];
-    $notifications = auth()->user()->notifications()->latest()->take(5)->get();
+        $categories = ['General', 'News', 'Tutorials', 'Personal', 'Announcements'];
+        $notifications = auth()->user()->notifications()->latest()->take(5)->get();
+        $featuredCount = Post::where('status', 'approved')->where('is_featured', true)->count();
 
-    return view('dashboard', compact('posts', 'categories', 'notifications'));
+        return view('dashboard', compact('posts', 'categories', 'notifications', 'featuredCount'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -60,6 +61,8 @@ Route::get('/test-view', function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
+    Route::post('/users/{user}/ban', [AdminController::class, 'banUser'])->name('users.ban');
+    Route::post('/users/{user}/unban', [AdminController::class, 'unbanUser'])->name('users.unban');
     Route::delete('/users/{user}', [AdminController::class, 'destroyUser'])->name('users.destroy');
     Route::delete('/posts/{post}', [AdminController::class, 'destroyPost'])->name('posts.destroy');
 });
@@ -86,5 +89,10 @@ route::get ('/upload', function() {
     return view('upload');
 });
 route::post('/upload',[UploadController::class, 'store']);
-route::get('/search', [UserController::class, 'search']);
+route::get('/search', [UserController::class, 'search'])->name('search');
 Route::get('/users/{user}', [PublicProfileController::class, 'show'])->name('users.show');
+
+route::post('/admin/users/{user}/ban',[AdminController::class, 'ban'])->name('admin.users.ban');
+route::post('/admin/users/{user}/unban', [AdminController::class, 'unban'])->name('admin.users.unban');
+route::get('/top-liked', [PostController::class, 'topLiked']);
+route::get('/statistics',[PostController::class, 'statistics'])->name('statistics');

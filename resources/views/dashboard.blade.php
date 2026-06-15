@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="min-h-screen bg-gray-100 py-10 dark:bg-gray-900">
+    <div class="min-h-screen bg-slate-50 py-10 dark:bg-gray-900">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <section class="mb-8 rounded-2xl bg-white p-6 shadow dark:bg-gray-800">
                 <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -58,25 +58,67 @@
                 </section>
             @endif
 
-            <div class="mb-6 grid gap-4 md:grid-cols-3">
-                <div class="rounded bg-white p-5 shadow dark:bg-gray-800">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Visible Posts</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ $posts->count() }}</p>
-                </div>
-                <div class="rounded bg-white p-5 shadow dark:bg-gray-800">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Featured</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ $posts->where('is_featured', true)->count() }}</p>
-                </div>
-                <div class="rounded bg-white p-5 shadow dark:bg-gray-800">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Saved</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{{ auth()->user()->favoritePosts()->count() }}</p>
-                </div>
-            </div>
+            <div class="grid gap-6 lg:grid-cols-3">
+                <!-- Sidebar -->
+                <aside class="space-y-6 lg:col-span-1">
+                    <div class="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100">
+                        <div class="flex items-center gap-4">
+                            <div class="h-14 w-14 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</div>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ auth()->user()->name }}</div>
+                                <div class="text-sm text-slate-500">{{ auth()->user()->email }}</div>
+                            </div>
+                        </div>
 
-            <div class="grid gap-6 lg:grid-cols-2">
-                @forelse ($posts as $post)
-                    <article class="rounded bg-white shadow dark:bg-gray-800">
-                        <div class="border-b border-gray-200 p-5 dark:border-gray-700">
+                        <p class="mt-4 text-sm text-slate-600">{{ auth()->user()->profile ?? 'A short bio goes here.' }}</p>
+                        <div class="mt-4 flex gap-2">
+                            <a href="{{ route('profile.edit') }}" class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">Edit Profile</a>
+                            <a href="{{ route('posts.create') }}" class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">New Post</a>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100">
+                        <h3 class="text-sm font-semibold text-slate-900">Categories</h3>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @foreach ($categories as $cat)
+                                <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs text-indigo-700">{{ $cat }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    @if ($notifications->isNotEmpty())
+                        <div class="rounded-2xl bg-white p-4 shadow-lg ring-1 ring-gray-100">
+                            <h3 class="text-sm font-semibold text-slate-900">Notifications</h3>
+                            <div class="mt-3 space-y-2">
+                                @foreach ($notifications as $notification)
+                                    <div class="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{{ $notification->title }} — <span class="text-xs text-slate-500">{{ $notification->body }}</span></div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </aside>
+
+                <!-- Main feed -->
+                <section class="lg:col-span-2">
+                    <div class="mb-6 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100">
+                            <p class="text-sm text-slate-500">Visible Posts</p>
+                            <p class="mt-2 text-3xl font-bold text-slate-900">{{ $posts->total() }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100">
+                            <p class="text-sm text-slate-500">Featured</p>
+                            <p class="mt-2 text-3xl font-bold text-slate-900">{{ $featuredCount }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100">
+                            <p class="text-sm text-slate-500">Saved</p>
+                            <p class="mt-2 text-3xl font-bold text-slate-900">{{ auth()->user()->favoritePosts()->count() }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6 lg:grid-cols-1">
+                        @forelse ($posts as $post)
+                            <article class="rounded-2xl bg-white shadow-lg ring-1 ring-gray-100 overflow-hidden transform transition hover:-translate-y-1 hover:shadow-xl">
+                                <div class="border-b border-gray-100 p-5">
                             <div class="mb-3 flex flex-wrap gap-2 text-xs">
                                 <span class="rounded bg-indigo-100 px-2 py-1 font-medium text-indigo-700">{{ $post->category }}</span>
                                 @if ($post->is_featured)
@@ -145,7 +187,7 @@
                             </form>
                         </div>
 
-                        <div class="p-5">
+                            <div class="p-5">
                             <div class="mb-3 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Comments</h3>
                                 <span class="text-xs text-gray-400">{{ $post->comments->count() }}</span>
@@ -196,7 +238,7 @@
                                 <form method="POST" action="{{ route('comments.store', $post) }}" class="mt-4 space-y-2">
                                     @csrf
                                     <textarea name="body" rows="2" placeholder="Write a comment" class="w-full rounded border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" required></textarea>
-                                    <button class="rounded bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                                    <button class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 shadow-sm">
                                         Comment
                                     </button>
                                 </form>
@@ -204,11 +246,13 @@
                         </div>
                     </article>
                 @empty
-                    <div class="rounded bg-white p-8 text-center text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400 lg:col-span-2">
+                    <div class="rounded-2xl bg-white p-8 text-center text-slate-500 shadow-lg lg:col-span-2">
                         No posts yet.
                     </div>
                 @endforelse
             </div>
+
+            <div class="mt-6 flex items-center justify-center">{{ $posts->links() }}</div>
         </div>
     </div>
 </x-app-layout>

@@ -30,7 +30,9 @@
             <p class="text-gray-500">No posts found.</p>
         @endforelse
     </div>
-
+    <div class="mt-6">
+        {{ $posts->links() }}
+    </div>
 </div>
 
 </body>

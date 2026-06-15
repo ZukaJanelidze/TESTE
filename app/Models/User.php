@@ -24,7 +24,10 @@ class User extends Authenticatable
             'gender',
             'role',
             'bio',
-            ];
+            'is_banned',
+            'banned_until',           
+            
+    ];
 protected $hidden=['password', 'remember_token'];
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -80,5 +83,10 @@ protected $hidden=['password', 'remember_token'];
     public function notifications(): HasMany
     {
         return $this->hasMany(AppNotification::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(PostLike::class);
     }
 }

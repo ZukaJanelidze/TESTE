@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\PostLike;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Post extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'title',
@@ -46,5 +49,10 @@ class Post extends Model
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(PostLike::class);
     }
 }

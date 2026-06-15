@@ -72,6 +72,8 @@
                     </div>
                 </form>
 
+               
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-900">
@@ -100,13 +102,29 @@
                                     </td>
                                     <td class="px-5 py-4 text-right">
                                         @if (! $user->is(Auth::user()))
-                                            <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete this user?')" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800">
-                                                    Delete
-                                                </button>
-                                            </form>
+                                            <div class="inline-flex flex-wrap items-center justify-end gap-2">
+                                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete this user?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800">
+                                                        Delete
+                                                    </button>
+                                                </form>
+
+                                                <form method="POST" action="{{ route('admin.users.ban', $user) }}" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-sm font-medium text-yellow-600 hover:text-yellow-800">
+                                                        Ban 7 Days
+                                                    </button>
+                                                </form>
+
+                                                <form method="POST" action="{{ route('admin.users.unban', $user) }}" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-sm font-medium text-green-600 hover:text-green-800">
+                                                        Unban
+                                                    </button>
+                                                </form>
+                                            </div>
                                         @else
                                             <span class="text-sm text-gray-400">Current user</span>
                                         @endif
@@ -119,6 +137,7 @@
                                     </td>
                                 </tr>
                             @endforelse
+
                         </tbody>
                     </table>
                 </div>
